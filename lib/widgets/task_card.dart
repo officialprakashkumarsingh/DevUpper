@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
 import '../models/agent_task.dart';
+import '../widgets/git_operations_widget.dart';
+import '../services/github_service.dart';
+import '../models/repository.dart';
 
 class TaskCard extends StatelessWidget {
   final AgentTask task;
   final VoidCallback onTap;
   final VoidCallback? onCancel;
+  final Repository? repository;
+  final GitHubService? githubService;
 
   const TaskCard({
     super.key,
     required this.task,
     required this.onTap,
     this.onCancel,
+    this.repository,
+    this.githubService,
   });
 
   @override
@@ -40,6 +47,11 @@ class TaskCard extends StatelessWidget {
             if (task.isRunning) _buildProgress(),
             if (task.isRunning) const SizedBox(height: 12),
             _buildFooter(),
+            // Add git operations section for completed tasks
+            if (task.isCompleted && repository != null && githubService != null) ...[
+              const SizedBox(height: 16),
+              _buildGitOperationsSection(context),
+            ],
           ],
         ),
       ),
@@ -230,6 +242,148 @@ class TaskCard extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+
+  Widget _buildGitOperationsSection(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.green.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.green.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.check_circle,
+                color: Colors.green.shade600,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Task Completed - Update Repository',
+                style: TextStyle(
+                  color: Colors.green.shade700,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildQuickGitActions(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickGitActions(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildGitActionButton(
+            'Commit',
+            Icons.commit,
+            Colors.blue,
+            () => _showGitOperations(context),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _buildGitActionButton(
+            'Push',
+            Icons.upload_rounded,
+            Colors.green,
+            () => _showGitOperations(context),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _buildGitActionButton(
+            'Pull',
+            Icons.download_rounded,
+            Colors.orange,
+            () => _showGitOperations(context),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _buildGitActionButton(
+            'More',
+            Icons.more_horiz,
+            Colors.purple,
+            () => _showGitOperations(context),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGitActionButton(
+    String label,
+    IconData icon,
+    Color color,
+    VoidCallback onPressed,
+  ) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 14),
+      label: Text(
+        label,
+        style: const TextStyle(fontSize: 12),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color.withOpacity(0.1),
+        foregroundColor: color,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+        minimumSize: const Size(0, 32),
+      ),
+    );
+  }
+
+  void _showGitOperations(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.9,
+          height: MediaQuery.of(context).size.height * 0.8,
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Text(
+                    'Git Operations - ${repository!.name}',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const Divider(),
+                             Expanded(
+                 child: GitOperationsWidget(
+                   repository: repository!,
+                   githubService: githubService!,
+                   completedTask: task,
+                 ),
+               ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
