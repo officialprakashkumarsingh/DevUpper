@@ -1,18 +1,30 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/repository.dart';
 
 class GitHubService {
   static const String _baseUrl = 'https://api.github.com';
+  static const String _tokenKey = 'github_token';
+  static const String _usernameKey = 'github_username';
+  
   String? _token;
   String? _username;
 
-  bool get isAuthenticated => _token != null;
+  bool get isAuthenticated => _token != null && _token!.isNotEmpty;
   String? get username => _username;
+  String? get token => _token;
 
   Future<bool> authenticate(String token) async {
     try {
+      // Clean the token (remove any whitespace)
+      token = token.trim();
+      
+      if (token.isEmpty) {
+        return false;
+      }
+      
       _token = token;
       
       // Verify token by getting user info
@@ -27,6 +39,10 @@ class GitHubService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         _username = data['login'];
+        
+        // Save credentials to persistent storage
+        await _saveCredentials(token, _username!);
+        
         return true;
       } else {
         _token = null;
@@ -34,15 +50,81 @@ class GitHubService {
         return false;
       }
     } catch (e) {
+      print('Authentication error: $e');
       _token = null;
       _username = null;
       return false;
     }
   }
 
-  void logout() {
-    _token = null;
-    _username = null;
+  Future<void> _saveCredentials(String token, String username) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_tokenKey, token);
+      await prefs.setString(_usernameKey, username);
+    } catch (e) {
+      print('Error saving credentials: $e');
+    }
+  }
+
+  Future<bool> loadSavedCredentials() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString(_tokenKey);
+      final username = prefs.getString(_usernameKey);
+      
+      if (token != null && username != null && token.isNotEmpty) {
+        _token = token;
+        _username = username;
+        
+        // Verify the saved token is still valid
+        final isValid = await _verifyToken();
+        if (!isValid) {
+          await clearCredentials();
+          return false;
+        }
+        
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print('Error loading credentials: $e');
+      return false;
+    }
+  }
+
+  Future<bool> _verifyToken() async {
+    if (_token == null) return false;
+    
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/user'),
+        headers: {
+          'Authorization': 'Bearer $_token',
+          'Accept': 'application/vnd.github.v3+json',
+        },
+      );
+      
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<void> clearCredentials() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_tokenKey);
+      await prefs.remove(_usernameKey);
+      _token = null;
+      _username = null;
+    } catch (e) {
+      print('Error clearing credentials: $e');
+    }
+  }
+
+  Future<void> logout() async {
+    await clearCredentials();
   }
 
   Future<List<Repository>> fetchUserRepositories() async {

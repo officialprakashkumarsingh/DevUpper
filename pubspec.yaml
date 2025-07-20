@@ -1,0 +1,55 @@
+name: devupper
+description: AI-powered development assistant for GitHub repositories
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Core dependencies
+  http: ^1.1.0
+  shared_preferences: ^2.2.2
+  
+  # Git operations
+  git: ^2.2.1
+  path: ^1.8.3
+  
+  # UI and styling
+  cupertino_icons: ^1.0.6
+  
+  # File operations
+  path_provider: ^2.1.1
+  
+  # System UI customization
+  flutter_native_splash: ^2.3.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  
+  # Add custom fonts for iOS-style design
+  fonts:
+    - family: SF Pro Display
+      fonts:
+        - asset: fonts/SFProDisplay-Regular.ttf
+        - asset: fonts/SFProDisplay-Medium.ttf
+          weight: 500
+        - asset: fonts/SFProDisplay-Semibold.ttf
+          weight: 600
+        - asset: fonts/SFProDisplay-Bold.ttf
+          weight: 700
+
+flutter_native_splash:
+  color: "#F2F2F7"
+  image: "assets/splash_icon.png"
+  android_12:
+    image: "assets/splash_icon.png"
+    color: "#F2F2F7"

@@ -1,278 +1,198 @@
-# DevUpper
+# DevUpper - AI-Powered Development Assistant
 
-DevUpper is a Flutter application that replicates Cursor AI agents functionality for mobile development. It provides an AI-powered development assistant that can understand large codebases, generate code, perform reviews, create pull requests, and much more.
+DevUpper is a Flutter application that serves as an AI-powered development assistant for your GitHub repositories. The app provides GitHub integration, git operations, and intelligent code analysis capabilities.
+
+## Recent Fixes & Improvements
+
+### 🔧 GitHub Token Authentication Issues Fixed
+
+The following issues with GitHub token authentication have been resolved:
+
+1. **Token Persistence**: Added `SharedPreferences` to save GitHub tokens securely
+2. **Auto-login**: App now checks for saved credentials on startup
+3. **Token Validation**: Validates saved tokens to ensure they're still valid
+4. **Improved Error Handling**: Better error messages and user feedback
+
+### 🎨 iOS-Style UI Improvements
+
+Enhanced the authentication screen with:
+
+- **Modern Input Field**: Redesigned token input with better iOS-style aesthetics
+- **Paste Functionality**: Added clipboard paste button for easy token entry
+- **Visual Feedback**: Added success/error states with proper colors and animations
+- **Haptic Feedback**: Added tactile feedback for better user experience
+- **Gradient Buttons**: Modern gradient styling for action buttons
+
+### 📱 System UI Customization
+
+Implemented proper system UI styling:
+
+- **Status Bar**: Transparent status bar with proper light/dark theme support
+- **Navigation Bar**: Themed system navigation bar matching app colors
+- **Splash Screen**: Added loading screen while checking authentication
+- **Theme Consistency**: Consistent iOS-style theming throughout the app
+
+### 🔧 Git Operations Implementation
+
+Added comprehensive git functionality:
+
+- **Local Repository Management**: Clone, init, and manage local repositories
+- **Git Commands**: Pull, push, commit, add, branch operations
+- **Status Monitoring**: Real-time git status with file change tracking
+- **Branch Management**: Create, switch, and list branches
+- **Commit History**: View recent commits with author and hash information
+- **Error Handling**: Proper error handling and user feedback for all operations
 
 ## Features
 
-### 🤖 AI Agent Capabilities
-- **Think, Plan, Execute**: Function-based AI workflow that thinks about tasks, creates plans, and executes them
-- **Code Generation**: Generate clean, production-ready code based on requirements
-- **Code Review**: Automated code review with suggestions for improvements
-- **Refactoring**: Intelligent code refactoring and optimization
-- **Bug Fixing**: Identify and fix bugs with AI assistance
-- **Testing**: Generate and run tests for your code
-- **Documentation**: Auto-generate documentation
+### Core Functionality
 
-### 📱 Repository Management
-- **GitHub Integration**: Full GitHub API integration with personal access tokens
-- **Repository Browser**: Browse and manage your GitHub repositories
-- **Pull Request Management**: Create, review, and merge pull requests
-- **Branch Management**: Create and switch between branches
-- **File Operations**: Read, write, and modify files in repositories
+- **GitHub Authentication**: Secure token-based authentication with persistence
+- **Repository Management**: Browse and manage your GitHub repositories
+- **AI Integration**: AI-powered code analysis and suggestions
+- **Git Operations**: Full local git functionality with modern UI
+- **Cross-Platform**: Works on iOS and Android with platform-specific styling
 
-### 🧠 Large Codebase Understanding
-- **Smart Analysis**: Analyze entire codebases without token limits
-- **Pattern Recognition**: Identify architectural and design patterns
-- **Dependency Mapping**: Understand project dependencies and structure
-- **Code Search**: Fast and accurate code search across files
-- **Language Detection**: Support for multiple programming languages
+### Git Operations Widget
 
-### 💬 Interactive Chat
-- **AI Assistant**: Chat with the AI agent about your code
-- **Context Aware**: Understands your current repository and project context
-- **Suggestions**: Get intelligent suggestions for development tasks
-- **Multi-turn Conversations**: Maintain conversation history and context
+The new `GitOperationsWidget` provides:
 
-### 🎨 iOS-Style Design
-- **Minimal Interface**: Clean, minimal design inspired by iOS
-- **Smooth Animations**: Fluid transitions and interactions
-- **Dark Mode Support**: Beautiful dark and light themes
-- **Responsive Layout**: Works great on different screen sizes
+- Real-time git status display
+- File change tracking (modified, added, deleted, untracked)
+- Quick action buttons for common git operations
+- Commit message input with validation
+- Recent commit history display
+- Branch information and switching
 
-## Technical Stack
+## Installation & Setup
 
-- **Frontend**: Flutter (Dart)
-- **AI Model**: Google Gemini 2.0 Flash (latest model)
-- **Backend Integration**: GitHub REST API
-- **Architecture**: Clean Architecture with service layers
-- **State Management**: setState (for simplicity)
-- **HTTP Client**: Built-in Dart HTTP package
+1. **Prerequisites**:
+   ```bash
+   flutter --version  # Ensure Flutter is installed
+   git --version      # Ensure Git is installed
+   ```
 
-## Setup Instructions
+2. **Install Dependencies**:
+   ```bash
+   flutter pub get
+   ```
 
-### Prerequisites
-- Flutter SDK (latest stable version)
-- Dart SDK
-- GitHub Personal Access Token
-- Internet connection for AI and GitHub API calls
+3. **Run the App**:
+   ```bash
+   flutter run
+   ```
 
-### Installation
-1. Clone this repository
-2. Navigate to the project directory
-3. Install dependencies (see pubspec.yaml information below)
-4. Run the app
+## GitHub Token Setup
 
-### GitHub Token Setup
 1. Go to GitHub.com → Settings → Developer settings
-2. Navigate to Personal access tokens → Tokens (classic)
-3. Generate new token with these scopes:
+2. Navigate to "Personal access tokens" → "Tokens (classic)"
+3. Click "Generate new token (classic)"
+4. Select the following scopes:
    - `repo` (Full repository access)
    - `user` (Read user profile)
    - `workflow` (Update workflows)
-4. Copy the token and paste it in the app
+5. Copy the generated token
+6. Paste it in the app's authentication screen
 
-## Configuration Files
+## Technical Architecture
 
-### pubspec.yaml Dependencies
+### Services
+
+- **GitHubService**: Handles GitHub API interactions and authentication
+- **GitService**: Manages local git operations and repository state
+- **AIService**: Processes AI-powered code analysis (existing)
+
+### Key Files
+
+- `lib/main.dart`: App entry point with system UI configuration
+- `lib/screens/auth_screen.dart`: Enhanced authentication screen
+- `lib/services/github_service.dart`: GitHub API service with persistence
+- `lib/services/git_service.dart`: Local git operations service
+- `lib/widgets/git_operations_widget.dart`: Git operations UI component
+
+### Dependencies
+
 ```yaml
-name: devupper
-description: AI-powered development assistant inspired by Cursor AI agents
-version: 1.0.0+1
-
-environment:
-  sdk: ">=3.0.0 <4.0.0"
-  flutter: ">=3.10.0"
-
 dependencies:
-  flutter:
-    sdk: flutter
-  
-  # HTTP client for API calls
-  http: ^1.1.0
-  
-  # Material Design icons
-  cupertino_icons: ^1.0.6
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  flutter_lints: ^3.0.0
-
-flutter:
-  uses-material-design: true
-  
-  # Add custom fonts if needed
-  # fonts:
-  #   - family: SF Pro Display
-  #     fonts:
-  #       - asset: fonts/SF-Pro-Display-Regular.otf
-  #       - asset: fonts/SF-Pro-Display-Medium.otf
-  #         weight: 500
-  #       - asset: fonts/SF-Pro-Display-Semibold.otf
-  #         weight: 600
-  #       - asset: fonts/SF-Pro-Display-Bold.otf
-  #         weight: 700
+  flutter: sdk: flutter
+  http: ^1.1.0                    # HTTP requests
+  shared_preferences: ^2.2.2      # Local data persistence
+  git: ^2.2.1                     # Git operations
+  path: ^1.8.3                    # Path utilities
+  path_provider: ^2.1.1           # File system access
+  cupertino_icons: ^1.0.6         # iOS-style icons
 ```
 
-### Android Manifest Configuration
-File: `android/app/src/main/AndroidManifest.xml`
+## Authentication Flow
 
-```xml
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    
-    <!-- Internet permission for API calls -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    
-    <!-- Network state permission for connectivity checks -->
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    
-    <!-- Optional: Wake lock for background processing -->
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
+1. **App Launch**: Check for saved credentials
+2. **Token Validation**: Verify saved token with GitHub API
+3. **Auto-Login**: Proceed to home screen if valid
+4. **Manual Login**: Show authentication screen if needed
+5. **Token Storage**: Save valid tokens securely
 
-    <application
-        android:label="DevUpper"
-        android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
-        android:theme="@style/LaunchTheme"
-        android:exported="true"
-        android:usesCleartextTraffic="true">
-        
-        <activity
-            android:name=".MainActivity"
-            android:exported="true"
-            android:launchMode="singleTop"
-            android:theme="@style/LaunchTheme"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-            android:hardwareAccelerated="true"
-            android:windowSoftInputMode="adjustResize">
-            
-            <!-- App launch intent -->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
-            
-            <!-- URL scheme for GitHub OAuth (if implementing OAuth later) -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="devupper" />
-            </intent-filter>
-        </activity>
-        
-        <!-- Required for Flutter embedding -->
-        <meta-data
-            android:name="flutterEmbedding"
-            android:value="2" />
-    </application>
-</manifest>
-```
+## Git Operations Flow
 
-### iOS Configuration
-File: `ios/Runner/Info.plist`
+1. **Repository Detection**: Check for existing local repositories
+2. **Clone/Initialize**: Clone from GitHub or initialize existing repo
+3. **Status Monitoring**: Real-time git status updates
+4. **Operation Execution**: Execute git commands with proper error handling
+5. **UI Updates**: Refresh status and provide user feedback
 
-```xml
-<key>NSAppTransportSecurity</key>
-<dict>
-    <key>NSAllowsArbitraryLoads</key>
-    <true/>
-</dict>
+## Error Handling
 
-<!-- App name and version -->
-<key>CFBundleDisplayName</key>
-<string>DevUpper</string>
-<key>CFBundleName</key>
-<string>DevUpper</string>
+The app includes comprehensive error handling for:
 
-<!-- URL scheme for GitHub OAuth -->
-<key>CFBundleURLTypes</key>
-<array>
-    <dict>
-        <key>CFBundleURLName</key>
-        <string>devupper.auth</string>
-        <key>CFBundleURLSchemes</key>
-        <array>
-            <string>devupper</string>
-        </array>
-    </dict>
-</array>
-```
+- Network connectivity issues
+- Invalid GitHub tokens
+- Git command failures
+- File system permissions
+- API rate limiting
 
-## Project Structure
+## Security
 
-```
-lib/
-├── main.dart                 # App entry point
-├── models/                   # Data models
-│   ├── repository.dart       # GitHub repository model
-│   └── agent_task.dart       # AI task model
-├── services/                 # Business logic
-│   ├── ai_service.dart       # Gemini AI integration
-│   ├── github_service.dart   # GitHub API integration
-│   └── codebase_analyzer.dart # Code analysis engine
-├── screens/                  # UI screens
-│   ├── auth_screen.dart      # Authentication
-│   ├── home_screen.dart      # Main dashboard
-│   └── repository_screen.dart # Repository details
-└── widgets/                  # Reusable UI components
-    ├── repository_card.dart  # Repository display
-    ├── task_card.dart        # Task status display
-    └── agent_chat.dart       # AI chat interface
-```
+- GitHub tokens are stored securely using `SharedPreferences`
+- Tokens are validated before use
+- No tokens are logged or exposed in debug output
+- Proper cleanup on logout
 
-## AI Model Configuration
+## Platform Support
 
-The app uses Google Gemini 2.0 Flash with the following configuration:
-- **Model**: `gemini-2.0-flash-exp`
-- **API Key**: `AIzaSyBUiSSswKvLvEK7rydCCRPF50eIDI_KOGc` (for testing)
-- **Max Tokens**: 8192
-- **Temperature**: 0.7
-- **Function Calling**: Enabled for tool usage
-
-### Available AI Tools
-1. **analyze_codebase** - Analyze repository structure and content
-2. **search_code** - Search for patterns in codebase
-3. **generate_code** - Generate new code based on requirements
-4. **refactor_code** - Refactor existing code
-5. **review_code** - Review code for quality and issues
-6. **create_pull_request** - Create GitHub pull requests
-7. **run_tests** - Execute project tests
-
-## Security Considerations
-
-- **API Keys**: The Gemini API key is included for testing. In production, use environment variables or secure storage
-- **GitHub Tokens**: Personal access tokens are stored locally and used for API authentication
-- **HTTPS**: All API calls use HTTPS for secure communication
-- **Permissions**: Minimal Android permissions requested
-
-## Development Workflow
-
-The AI agent follows Cursor AI's approach:
-1. **Think**: Analyze the task and understand requirements
-2. **Plan**: Create a detailed execution plan with steps
-3. **Execute**: Use available tools to complete the task
-4. **Report**: Provide comprehensive results and feedback
-
-## Future Enhancements
-
-- [ ] Real-time collaboration features
-- [ ] Advanced code editor with syntax highlighting
-- [ ] Git operations (commit, push, pull)
-- [ ] CI/CD pipeline integration
-- [ ] Plugin system for custom tools
-- [ ] Offline mode for basic functionality
-- [ ] Multi-language support
-- [ ] Advanced analytics and insights
+- **iOS**: Native iOS styling with proper system UI integration
+- **Android**: Material Design with iOS-style customizations
+- **Theme Support**: Light and dark themes with proper status bar styling
 
 ## Contributing
 
-This is a demonstration project showcasing AI-powered development tools. The code is designed to be educational and extensible.
+When contributing to this project:
 
-## License
+1. Follow the existing code style and architecture
+2. Add proper error handling for new features
+3. Update documentation for any new functionality
+4. Test on both iOS and Android platforms
+5. Ensure proper theme support in light and dark modes
 
-This project is created for educational and demonstration purposes. The AI capabilities are powered by Google's Gemini API, and GitHub integration uses their public API.
+## Troubleshooting
 
----
+### Common Issues
 
-**Note**: This app demonstrates the future of AI-assisted mobile development, bringing powerful coding tools to your fingertips with an intuitive, iOS-inspired interface.
+1. **"Git not found"**: Ensure Git is installed and available in PATH
+2. **"Invalid token"**: Generate a new GitHub token with proper scopes
+3. **"Clone failed"**: Check network connectivity and repository permissions
+4. **"Authentication failed"**: Verify token hasn't expired
+
+### Debug Mode
+
+To enable debug logging, add debug prints in the respective service files and run:
+
+```bash
+flutter run --debug
+```
+
+## Future Enhancements
+
+- SSH key support for git operations
+- Multiple GitHub account support
+- Advanced git operations (merge, rebase, cherry-pick)
+- Repository analytics and insights
+- Team collaboration features
