@@ -651,11 +651,12 @@ class _CreateTaskDialogState extends State<_CreateTaskDialog> {
         ElevatedButton(
           onPressed: () {
             if (_titleController.text.trim().isNotEmpty &&
-                _descriptionController.text.trim().isNotEmpty) {
+                _descriptionController.text.trim().isNotEmpty &&
+                _selectedType != null) {
               widget.onCreateTask(
                 title: _titleController.text.trim(),
                 description: _descriptionController.text.trim(),
-                type: _selectedType,
+                type: _selectedType!,
                 repository: _selectedRepository,
               );
               Navigator.pop(context);

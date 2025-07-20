@@ -426,54 +426,6 @@ class GitService {
     }
   }
 
-  /// Push to remote repository
-  Future<bool> push({String? remote, String? branch, String? token}) async {
-    if (_currentRepoPath == null) return false;
-    
-    try {
-      List<String> args = ['push'];
-      
-      if (remote != null && branch != null) {
-        args.addAll([remote, branch]);
-      }
-      
-      final result = await Process.run(
-        'git',
-        args,
-        workingDirectory: _currentRepoPath,
-      );
-      
-      return result.exitCode == 0;
-    } catch (e) {
-      print('Error pushing: $e');
-      return false;
-    }
-  }
-
-  /// Pull from remote repository
-  Future<bool> pull({String? remote, String? branch}) async {
-    if (_currentRepoPath == null) return false;
-    
-    try {
-      List<String> args = ['pull'];
-      
-      if (remote != null && branch != null) {
-        args.addAll([remote, branch]);
-      }
-      
-      final result = await Process.run(
-        'git',
-        args,
-        workingDirectory: _currentRepoPath,
-      );
-      
-      return result.exitCode == 0;
-    } catch (e) {
-      print('Error pulling: $e');
-      return false;
-    }
-  }
-
   /// Merge branch
   Future<bool> merge(String branchName) async {
     if (_currentRepoPath == null) return false;
