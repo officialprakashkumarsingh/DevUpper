@@ -35,12 +35,26 @@ class _AuthScreenState extends State<AuthScreen> {
     try {
       final success = await _githubService.authenticate(token);
       
-      if (success) {
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-          );
-        }
+      if (success && mounted) {
+        // Clear the token field for security
+        _tokenController.clear();
+        
+        // Small delay to show success state
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        // Navigate to home screen
+        Navigator.of(context).pushReplacement(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => const HomeScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(
+                opacity: animation,
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 300),
+          ),
+        );
       } else {
         setState(() {
           _error = 'Invalid GitHub token. Please check your token and try again.';
@@ -168,70 +182,184 @@ class _AuthScreenState extends State<AuthScreen> {
   Widget _buildTokenInput() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: Theme.of(context).brightness == Brightness.dark 
+            ? const Color(0xFF1C1C1E) 
+            : Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
         ],
+        border: Border.all(
+          color: _error != null 
+              ? Colors.red.withOpacity(0.3)
+              : Colors.transparent,
+          width: 1,
+        ),
       ),
       child: TextField(
         controller: _tokenController,
         obscureText: !_isTokenVisible,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
         decoration: InputDecoration(
-          hintText: 'Enter your GitHub Personal Access Token',
-          hintStyle: TextStyle(color: Colors.grey[500]),
-          prefixIcon: Icon(
-            Icons.key,
-            color: Colors.grey[600],
+          hintText: 'Paste your GitHub Personal Access Token',
+          hintStyle: TextStyle(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey[500]
+                : Colors.grey[500],
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
           ),
-          suffixIcon: IconButton(
-            icon: Icon(
-              _isTokenVisible ? Icons.visibility_off : Icons.visibility,
-              color: Colors.grey[600],
+          prefixIcon: Container(
+            margin: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
             ),
-            onPressed: () {
-              setState(() {
-                _isTokenVisible = !_isTokenVisible;
-              });
-            },
+            child: Icon(
+              Icons.key_rounded,
+              color: Theme.of(context).colorScheme.primary,
+              size: 20,
+            ),
+          ),
+          suffixIcon: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: Icon(
+                  _isTokenVisible ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                  color: Colors.grey[600],
+                  size: 20,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isTokenVisible = !_isTokenVisible;
+                  });
+                },
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.content_paste_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 20,
+                ),
+                onPressed: _pasteFromClipboard,
+              ),
+              const SizedBox(width: 8),
+            ],
           ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
+            horizontal: 20,
+            vertical: 20,
           ),
         ),
         onSubmitted: (_) => _authenticate(),
+        onChanged: (value) {
+          if (_error != null) {
+            setState(() {
+              _error = null;
+            });
+          }
+        },
       ),
     );
   }
 
+  Future<void> _pasteFromClipboard() async {
+    try {
+      final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+      if (clipboardData?.text != null) {
+        _tokenController.text = clipboardData!.text!;
+        setState(() {
+          _error = null;
+        });
+        
+        // Show haptic feedback
+        HapticFeedback.lightImpact();
+        
+        // Show success feedback
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Token pasted from clipboard'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error pasting from clipboard: $e');
+    }
+  }
+
   Widget _buildAuthButton() {
-    return SizedBox(
+    return Container(
       width: double.infinity,
-      height: 50,
+      height: 56,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          colors: _isLoading
+              ? [Colors.grey[400]!, Colors.grey[500]!]
+              : [
+                  Theme.of(context).colorScheme.primary,
+                  Theme.of(context).colorScheme.primary.withBlue(255),
+                ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: ElevatedButton(
         onPressed: _isLoading ? null : _authenticate,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Theme.of(context).colorScheme.primary,
+          backgroundColor: Colors.transparent,
           foregroundColor: Colors.white,
           elevation: 0,
+          shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
         ),
         child: _isLoading
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation(Colors.white),
-                ),
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation(Colors.white),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Connecting...',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withOpacity(0.9),
+                    ),
+                  ),
+                ],
               )
             : const Text(
                 'Connect to GitHub',

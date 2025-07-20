@@ -3,6 +3,7 @@ import '../models/repository.dart';
 import '../models/agent_task.dart';
 import '../services/github_service.dart';
 import '../services/ai_service.dart';
+import '../services/git_service.dart';
 import '../widgets/repository_card.dart';
 import '../widgets/task_card.dart';
 import '../widgets/agent_chat.dart';
@@ -33,8 +34,11 @@ class _HomeScreenState extends State<HomeScreen> {
     _checkAuthenticationStatus();
   }
 
-  void _checkAuthenticationStatus() {
-    if (!_githubService.isAuthenticated) {
+  Future<void> _checkAuthenticationStatus() async {
+    // First, try to load saved credentials
+    final hasCredentials = await _githubService.loadSavedCredentials();
+    
+    if (!hasCredentials || !_githubService.isAuthenticated) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const AuthScreen()),
