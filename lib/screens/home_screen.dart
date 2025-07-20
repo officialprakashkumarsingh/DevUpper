@@ -72,14 +72,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _createTask({
     required String title,
     required String description,
-    required TaskType type,
+    TaskType? type,
     Repository? repository,
   }) async {
+    // Use AI to determine task type if not provided
+    TaskType finalType = type ?? await _determineTaskType(title, description);
+    
     final task = AgentTask(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: title,
       description: description,
-      type: type,
+      type: finalType,
       createdAt: DateTime.now(),
       repositoryId: repository?.id,
     );
@@ -113,6 +116,16 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         }
       });
+    }
+  }
+
+  Future<TaskType> _determineTaskType(String title, String description) async {
+    try {
+      final taskType = await _aiService.determineTaskType(title, description);
+      return taskType;
+    } catch (e) {
+      // Fallback to default type if AI determination fails
+      return TaskType.custom;
     }
   }
 
@@ -447,6 +460,10 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.only(bottom: 12),
           child: TaskCard(
             task: task,
+            repository: task.repositoryId != null 
+                ? _repositories.firstWhere((r) => r.id == task.repositoryId, orElse: () => _repositories.first)
+                : null,
+            githubService: _githubService,
             onTap: () {
               // Show task details
             },
@@ -499,25 +516,45 @@ class _CreateTaskDialog extends StatefulWidget {
 class _CreateTaskDialogState extends State<_CreateTaskDialog> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  TaskType _selectedType = TaskType.codeGeneration;
+  TaskType? _selectedType; // Make optional, AI will determine if null
   Repository? _selectedRepository;
+  bool _useAITypeDetection = true;
+  bool _isGeneratingAISuggestions = false;
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Create Task'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Task Title',
-                hintText: 'e.g., Add user authentication',
-              ),
-            ),
+                content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _titleController,
+                        decoration: const InputDecoration(
+                          labelText: 'Task Title',
+                          hintText: 'e.g., Add user authentication',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: _isGeneratingAISuggestions ? null : _generateAISuggestions,
+                      icon: _isGeneratingAISuggestions 
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.auto_awesome),
+                      tooltip: 'Generate AI suggestions',
+                    ),
+                  ],
+                ),
             const SizedBox(height: 16),
             TextField(
               controller: _descriptionController,
@@ -528,23 +565,57 @@ class _CreateTaskDialogState extends State<_CreateTaskDialog> {
               maxLines: 3,
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<TaskType>(
-              value: _selectedType,
-              decoration: const InputDecoration(
-                labelText: 'Task Type',
-              ),
-              items: TaskType.values.map((type) {
-                return DropdownMenuItem(
-                  value: type,
-                  child: Text(_getTaskTypeDisplayName(type)),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedType = value!;
-                });
-              },
+            // AI Type Detection Toggle
+            Row(
+              children: [
+                Switch(
+                  value: _useAITypeDetection,
+                  onChanged: (value) {
+                    setState(() {
+                      _useAITypeDetection = value;
+                      if (value) {
+                        _selectedType = null;
+                      } else {
+                        _selectedType = TaskType.codeGeneration;
+                      }
+                    });
+                  },
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _useAITypeDetection 
+                        ? 'AI will determine task type automatically' 
+                        : 'Manual task type selection',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: _useAITypeDetection ? Colors.blue.shade700 : Colors.grey.shade600,
+                      fontWeight: _useAITypeDetection ? FontWeight.w500 : FontWeight.normal,
+                    ),
+                  ),
+                ),
+              ],
             ),
+            if (!_useAITypeDetection) ...[
+              const SizedBox(height: 16),
+              DropdownButtonFormField<TaskType>(
+                value: _selectedType,
+                decoration: const InputDecoration(
+                  labelText: 'Task Type',
+                ),
+                items: TaskType.values.map((type) {
+                  return DropdownMenuItem(
+                    value: type,
+                    child: Text(_getTaskTypeDisplayName(type)),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedType = value!;
+                  });
+                },
+              ),
+            ],
             const SizedBox(height: 16),
             DropdownButtonFormField<Repository?>(
               value: _selectedRepository,
@@ -619,6 +690,59 @@ class _CreateTaskDialogState extends State<_CreateTaskDialog> {
       case TaskType.custom:
         return 'Custom';
     }
+  }
+
+  Future<void> _generateAISuggestions() async {
+    if (_selectedRepository == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a repository first')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isGeneratingAISuggestions = true;
+    });
+
+    try {
+      // This would be implemented in AI service to analyze repository and suggest tasks
+      final suggestions = await _generateTaskSuggestions(_selectedRepository!);
+      
+      if (suggestions.isNotEmpty) {
+        final suggestion = suggestions.first;
+        setState(() {
+          _titleController.text = suggestion['title'] ?? '';
+          _descriptionController.text = suggestion['description'] ?? '';
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to generate suggestions: $e')),
+      );
+    } finally {
+      setState(() {
+        _isGeneratingAISuggestions = false;
+      });
+    }
+  }
+
+  Future<List<Map<String, String>>> _generateTaskSuggestions(Repository repository) async {
+    // Placeholder implementation - this would analyze the repository
+    // and suggest relevant tasks based on the codebase
+    return [
+      {
+        'title': 'Improve code documentation',
+        'description': 'Add comprehensive documentation and comments to improve code readability and maintainability',
+      },
+      {
+        'title': 'Add unit tests',
+        'description': 'Create unit tests for critical functions to improve code reliability and catch bugs early',
+      },
+      {
+        'title': 'Refactor legacy code',
+        'description': 'Modernize and refactor outdated code sections to improve performance and maintainability',
+      },
+    ];
   }
 
   @override

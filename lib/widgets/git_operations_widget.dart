@@ -4,15 +4,18 @@ import 'dart:io';
 import '../services/git_service.dart';
 import '../services/github_service.dart';
 import '../models/repository.dart';
+import '../models/agent_task.dart';
 
 class GitOperationsWidget extends StatefulWidget {
   final Repository repository;
   final GitHubService githubService;
+  final AgentTask? completedTask;
 
   const GitOperationsWidget({
     super.key,
     required this.repository,
     required this.githubService,
+    this.completedTask,
   });
 
   @override
@@ -35,6 +38,15 @@ class _GitOperationsWidgetState extends State<GitOperationsWidget> {
   void initState() {
     super.initState();
     _initializeGitRepo();
+    _generateCommitMessage();
+  }
+
+  void _generateCommitMessage() {
+    if (widget.completedTask != null) {
+      final task = widget.completedTask!;
+      final commitMessage = '${task.typeDisplayName}: ${task.title}\n\n${task.description}';
+      _commitMessageController.text = commitMessage;
+    }
   }
 
   Future<void> _initializeGitRepo() async {
@@ -148,6 +160,14 @@ class _GitOperationsWidgetState extends State<GitOperationsWidget> {
           success = await _gitService.commit(message);
           successMessage = 'Successfully committed changes';
           _commitMessageController.clear();
+          break;
+        case 'push':
+          success = await _gitService.push();
+          successMessage = 'Successfully pushed changes to remote';
+          break;
+        case 'pull':
+          success = await _gitService.pull();
+          successMessage = 'Successfully pulled changes from remote';
           break;
       }
 

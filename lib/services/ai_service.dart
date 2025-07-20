@@ -186,6 +186,19 @@ class AIService {
       final result = await _executePlan(task, plan, repository);
       
       await _updateTaskStatus(task, TaskStatus.completed);
+      
+      // If code changes were made and repository is available, suggest git operations
+      if (repository != null && _hasCodeChanges(result)) {
+        // Add metadata to indicate git operations are needed
+        task = task.copyWith(
+          metadata: {
+            ...task.metadata,
+            'requiresGitOps': true,
+            'suggestedCommitMessage': '${task.typeDisplayName}: ${task.title}',
+          },
+        );
+      }
+      
       return result;
     } catch (e) {
       await _updateTaskStatus(task, TaskStatus.failed);
@@ -254,6 +267,81 @@ class AIService {
     ''';
 
     return await _generateResponse(prompt, useFunctionCalling: true);
+  }
+
+  Future<TaskType> determineTaskType(String title, String description) async {
+    final prompt = '''
+    Analyze this task and determine the most appropriate task type:
+    
+    Title: $title
+    Description: $description
+    
+    Available task types:
+    - codeGeneration: Creating new code, functions, classes, or features
+    - codeReview: Reviewing existing code for quality, bugs, or improvements
+    - refactoring: Restructuring existing code without changing functionality
+    - bugFix: Fixing bugs or errors in existing code
+    - testing: Writing tests, test cases, or testing code
+    - documentation: Creating or updating documentation, comments, README files
+    - gitOperation: Git-related tasks like merging, branching, versioning
+    - fileOperation: File system operations like moving, renaming, organizing files
+    - analysis: Code analysis, performance analysis, security analysis
+    - custom: Any other type of task
+    
+    Return only the task type name (one word) that best matches this task.
+    ''';
+
+    try {
+      final response = await _generateResponse(prompt);
+      final taskTypeName = response.trim().toLowerCase();
+      
+      // Map response to TaskType enum
+      switch (taskTypeName) {
+        case 'codegeneration':
+          return TaskType.codeGeneration;
+        case 'codereview':
+          return TaskType.codeReview;
+        case 'refactoring':
+          return TaskType.refactoring;
+        case 'bugfix':
+          return TaskType.bugFix;
+        case 'testing':
+          return TaskType.testing;
+        case 'documentation':
+          return TaskType.documentation;
+        case 'gitoperation':
+          return TaskType.gitOperation;
+        case 'fileoperation':
+          return TaskType.fileOperation;
+        case 'analysis':
+          return TaskType.analysis;
+        default:
+          return TaskType.custom;
+      }
+    } catch (e) {
+      // Fallback logic based on keywords
+      final combinedText = '$title $description'.toLowerCase();
+      
+      if (combinedText.contains('bug') || combinedText.contains('fix') || combinedText.contains('error')) {
+        return TaskType.bugFix;
+      } else if (combinedText.contains('test') || combinedText.contains('unit test') || combinedText.contains('testing')) {
+        return TaskType.testing;
+      } else if (combinedText.contains('review') || combinedText.contains('check') || combinedText.contains('audit')) {
+        return TaskType.codeReview;
+      } else if (combinedText.contains('refactor') || combinedText.contains('restructure') || combinedText.contains('optimize')) {
+        return TaskType.refactoring;
+      } else if (combinedText.contains('document') || combinedText.contains('readme') || combinedText.contains('comment')) {
+        return TaskType.documentation;
+      } else if (combinedText.contains('git') || combinedText.contains('commit') || combinedText.contains('merge') || combinedText.contains('branch')) {
+        return TaskType.gitOperation;
+      } else if (combinedText.contains('create') || combinedText.contains('add') || combinedText.contains('implement') || combinedText.contains('build')) {
+        return TaskType.codeGeneration;
+      } else if (combinedText.contains('analyze') || combinedText.contains('analysis') || combinedText.contains('performance')) {
+        return TaskType.analysis;
+      } else {
+        return TaskType.custom;
+      }
+    }
   }
 
   Future<String> _generateResponse(String prompt, {bool useFunctionCalling = false}) async {
@@ -329,6 +417,25 @@ class AIService {
     } catch (e) {
       throw Exception('AI API Error: $e');
     }
+  }
+
+  bool _hasCodeChanges(String result) {
+    // Check if the result indicates code changes were made
+    final codeIndicators = [
+      'created file',
+      'modified file',
+      'updated file',
+      'added function',
+      'implemented',
+      'refactored',
+      'fixed bug',
+      'added test',
+      'wrote code',
+      'generated code',
+    ];
+    
+    final resultLower = result.toLowerCase();
+    return codeIndicators.any((indicator) => resultLower.contains(indicator));
   }
 
   Future<String> _executeFunctionCall(String functionName, Map<String, dynamic> args) async {
