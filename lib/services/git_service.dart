@@ -14,22 +14,45 @@ class GitService {
   String? _currentRepoPath;
   String? get currentRepoPath => _currentRepoPath;
 
+  /// Check if git is available on the system
+  Future<bool> isGitAvailable() async {
+    try {
+      final result = await Process.run('git', ['--version']);
+      return result.exitCode == 0;
+    } catch (e) {
+      print('Git is not available: $e');
+      return false;
+    }
+  }
+
   /// Initialize git repository at the given path
   Future<bool> initRepository(String repoPath) async {
     try {
+      // Check if git is available first
+      if (!await isGitAvailable()) {
+        throw Exception('Git is not installed on this system');
+      }
+
       _currentRepoPath = repoPath;
       
       // Check if .git directory exists
       final gitDir = Directory(path.join(repoPath, '.git'));
       if (!gitDir.existsSync()) {
         final result = await Process.run('git', ['init'], workingDirectory: repoPath);
-        return result.exitCode == 0;
+        if (result.exitCode != 0) {
+          throw Exception('Failed to initialize git repository: ${result.stderr}');
+        }
       }
       return true;
     } catch (e) {
       print('Error initializing repository: $e');
       return false;
     }
+  }
+
+  /// Set current repository path for operations
+  void setCurrentRepository(String repoPath) {
+    _currentRepoPath = repoPath;
   }
 
   /// Clone a repository from GitHub
@@ -39,6 +62,11 @@ class GitService {
     String? token,
   }) async {
     try {
+      // Check if git is available first
+      if (!await isGitAvailable()) {
+        throw Exception('Git is not installed on this system');
+      }
+
       // Create the local directory if it doesn't exist
       final dir = Directory(localPath);
       if (!dir.existsSync()) {
@@ -440,16 +468,6 @@ class GitService {
       return result.exitCode == 0;
     } catch (e) {
       print('Error merging: $e');
-      return false;
-    }
-  }
-
-  /// Check if git is available on the system
-  Future<bool> isGitAvailable() async {
-    try {
-      final result = await Process.run('git', ['--version']);
-      return result.exitCode == 0;
-    } catch (e) {
       return false;
     }
   }
