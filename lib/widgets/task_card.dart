@@ -300,7 +300,7 @@ class TaskCard extends StatelessWidget {
         Expanded(
           child: _buildGitActionButton(
             'Commit',
-            Icons.commit,
+            Icons.save, // Changed to valid save icon
             Colors.blue,
             () => _showGitOperations(context),
           ),
@@ -424,9 +424,9 @@ class TaskCard extends StatelessWidget {
       case TaskStatus.pending:
         return CupertinoIcons.clock;
       case TaskStatus.thinking:
-        return CupertinoIcons.brain;
+        return CupertinoIcons.lightbulb; // Changed to valid thinking icon
       case TaskStatus.planning:
-        return CupertinoIcons.map;
+        return CupertinoIcons.list_bullet_below_rectangle; // Changed to valid planning icon
       case TaskStatus.executing:
         return CupertinoIcons.play_fill;
       case TaskStatus.completed:

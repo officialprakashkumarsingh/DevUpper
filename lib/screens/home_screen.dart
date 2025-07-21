@@ -258,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: _buildTabItem(
               title: 'Agent',
-              icon: CupertinoIcons.ant_circle, // Changed agent icon
+              icon: CupertinoIcons.chat_bubble_2, // Changed to valid chat icon
               index: 2,
             ),
           ),
@@ -673,11 +673,11 @@ class _CreateTaskDialogState extends State<_CreateTaskDialog> {
           onPressed: () {
             if (_titleController.text.trim().isNotEmpty &&
                 _descriptionController.text.trim().isNotEmpty &&
-                _selectedType != null) {
+                (_useAITypeDetection || _selectedType != null)) {
               widget.onCreateTask(
                 title: _titleController.text.trim(),
                 description: _descriptionController.text.trim(),
-                type: _selectedType!,
+                type: _selectedType ?? TaskType.custom, // Use custom as fallback when AI detection is enabled
                 repository: _selectedRepository,
               );
               Navigator.pop(context);

@@ -182,7 +182,7 @@ class _RepositoryScreenState extends State<RepositoryScreen> with SingleTickerPr
                     children: [
                       _buildStatChip(
                         icon: CupertinoIcons.star,
-                        label: widget.repository.stars.toString(),
+                        label: widget.repository.stargazersCount.toString(),
                       ),
                       const SizedBox(width: 8),
                       _buildStatChip(
@@ -716,7 +716,6 @@ class _RepositoryScreenState extends State<RepositoryScreen> with SingleTickerPr
       child: GitOperationsWidget(
         repository: widget.repository,
         githubService: _githubService,
-        onRefresh: _loadGitInfo,
       ),
     );
   }
