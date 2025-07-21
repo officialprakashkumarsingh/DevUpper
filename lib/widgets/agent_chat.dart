@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import '../models/repository.dart';
 import '../services/ai_service.dart';
 
@@ -35,13 +36,15 @@ class _AgentChatState extends State<AgentChat> {
   void _addWelcomeMessage() {
     _messages.add(
       ChatMessage(
-        text: "Hello! I'm your AI development assistant. I can help you with:\n\n"
-            "• Code generation and review\n"
-            "• Repository analysis\n"
-            "• Bug fixing and refactoring\n"
-            "• Creating pull requests\n"
-            "• Running tests and more!\n\n"
-            "Select a repository and ask me anything!",
+        text: "👋 Hello! I'm your AI development assistant.\n\n"
+            "💡 I can help you with:\n"
+            "• Code generation and optimization\n"
+            "• Repository analysis and insights\n"
+            "• Bug detection and fixes\n"
+            "• Pull request creation\n"
+            "• Testing and documentation\n"
+            "• Best practices recommendations\n\n"
+            "🚀 Select a repository and let's get started!",
         isUser: false,
         timestamp: DateTime.now(),
       ),
@@ -87,7 +90,7 @@ class _AgentChatState extends State<AgentChat> {
     } catch (e) {
       setState(() {
         _messages.add(ChatMessage(
-          text: "Sorry, I encountered an error: ${e.toString()}",
+          text: "⚠️ Sorry, I encountered an error: ${e.toString()}\n\nPlease try again or rephrase your question.",
           isUser: false,
           timestamp: DateTime.now(),
           isError: true,
@@ -150,28 +153,49 @@ class _AgentChatState extends State<AgentChat> {
 
   Widget _buildRepositorySelector() {
     return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey.withOpacity(0.2)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<Repository?>(
           value: widget.selectedRepository,
-          hint: const Text('Select repository'),
+          hint: Text(
+            'Select repository',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
           isExpanded: true,
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.black,
+            fontWeight: FontWeight.w500,
+          ),
           items: [
-            const DropdownMenuItem<Repository?>(
+            DropdownMenuItem<Repository?>(
               value: null,
-              child: Text('No repository selected'),
+              child: Row(
+                children: [
+                  Icon(
+                    CupertinoIcons.folder,
+                    size: 14,
+                    color: Colors.grey[500],
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'No repository selected',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
             ),
             ...widget.repositories.map((repo) {
               return DropdownMenuItem<Repository?>(
@@ -179,10 +203,10 @@ class _AgentChatState extends State<AgentChat> {
                 child: Row(
                   children: [
                     Container(
-                      width: 12,
-                      height: 12,
+                      width: 10,
+                      height: 10,
                       decoration: BoxDecoration(
-                        color: repo.isPrivate ? Colors.orange : Colors.green,
+                        color: repo.isPrivate ? const Color(0xFFFF9500) : const Color(0xFF34C759),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -190,6 +214,10 @@ class _AgentChatState extends State<AgentChat> {
                     Expanded(
                       child: Text(
                         repo.name,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -207,7 +235,7 @@ class _AgentChatState extends State<AgentChat> {
   Widget _buildMessagesList() {
     return ListView.builder(
       controller: _scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: _messages.length + (_isLoading ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == _messages.length) {
@@ -222,41 +250,39 @@ class _AgentChatState extends State<AgentChat> {
 
   Widget _buildMessage(ChatMessage message) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       child: Row(
         mainAxisAlignment:
             message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!message.isUser) _buildAvatar(false),
-          if (!message.isUser) const SizedBox(width: 12),
+          if (!message.isUser) const SizedBox(width: 8),
           Flexible(
             child: Container(
-              padding: const EdgeInsets.all(16),
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.75,
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
                 color: message.isUser
-                    ? Theme.of(context).colorScheme.primary
+                    ? const Color(0xFF007AFF)
                     : message.isError
-                        ? Colors.red.shade50
+                        ? const Color(0xFFFF3B30).withOpacity(0.1)
                         : Colors.white,
-                borderRadius: BorderRadius.circular(16).copyWith(
+                borderRadius: BorderRadius.circular(12).copyWith(
                   bottomLeft: message.isUser
-                      ? const Radius.circular(16)
-                      : const Radius.circular(4),
+                      ? const Radius.circular(12)
+                      : const Radius.circular(2),
                   bottomRight: message.isUser
-                      ? const Radius.circular(4)
-                      : const Radius.circular(16),
+                      ? const Radius.circular(2)
+                      : const Radius.circular(12),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
                 border: message.isError
-                    ? Border.all(color: Colors.red.shade200)
-                    : null,
+                    ? Border.all(color: const Color(0xFFFF3B30).withOpacity(0.3))
+                    : message.isUser 
+                        ? null
+                        : Border.all(color: Colors.grey.withOpacity(0.2)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,9 +293,10 @@ class _AgentChatState extends State<AgentChat> {
                       color: message.isUser
                           ? Colors.white
                           : message.isError
-                              ? Colors.red.shade700
-                              : Colors.grey.shade800,
+                              ? const Color(0xFFFF3B30)
+                              : Colors.black87,
                       fontSize: 14,
+                      fontWeight: FontWeight.w400,
                       height: 1.4,
                     ),
                   ),
@@ -279,15 +306,16 @@ class _AgentChatState extends State<AgentChat> {
                     style: TextStyle(
                       color: message.isUser
                           ? Colors.white.withOpacity(0.7)
-                          : Colors.grey.shade500,
+                          : Colors.grey[500],
                       fontSize: 11,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                 ],
               ),
             ),
           ),
-          if (message.isUser) const SizedBox(width: 12),
+          if (message.isUser) const SizedBox(width: 8),
           if (message.isUser) _buildAvatar(true),
         ],
       ),
@@ -296,51 +324,59 @@ class _AgentChatState extends State<AgentChat> {
 
   Widget _buildAvatar(bool isUser) {
     return Container(
-      width: 32,
-      height: 32,
+      width: 28,
+      height: 28,
       decoration: BoxDecoration(
-        color: isUser
-            ? Theme.of(context).colorScheme.primary
-            : Colors.grey.shade600,
-        borderRadius: BorderRadius.circular(16),
+        gradient: isUser
+            ? LinearGradient(
+                colors: [
+                  const Color(0xFF007AFF),
+                  const Color(0xFF5856D6),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : LinearGradient(
+                colors: [
+                  const Color(0xFF34C759),
+                  const Color(0xFF30D158),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Icon(
-        isUser ? Icons.person : Icons.smart_toy,
+        isUser ? CupertinoIcons.person_fill : CupertinoIcons.ant_circle_fill, // Changed to robot/AI icon
         color: Colors.white,
-        size: 18,
+        size: 16,
       ),
     );
   }
 
   Widget _buildTypingIndicator() {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
           _buildAvatar(false),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16).copyWith(
-                bottomLeft: const Radius.circular(4),
+              borderRadius: BorderRadius.circular(12).copyWith(
+                bottomLeft: const Radius.circular(2),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              border: Border.all(color: Colors.grey.withOpacity(0.2)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildTypingDot(0),
-                const SizedBox(width: 4),
+                const SizedBox(width: 3),
                 _buildTypingDot(1),
-                const SizedBox(width: 4),
+                const SizedBox(width: 3),
                 _buildTypingDot(2),
               ],
             ),
@@ -352,15 +388,18 @@ class _AgentChatState extends State<AgentChat> {
 
   Widget _buildTypingDot(int index) {
     return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: Duration(milliseconds: 600 + (index * 200)),
+      tween: Tween(begin: 0.4, end: 1.0),
+      duration: Duration(milliseconds: 600 + (index * 150)),
       builder: (context, value, child) {
-        return Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade400.withOpacity(value),
-            shape: BoxShape.circle,
+        return Transform.scale(
+          scale: value,
+          child: Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: const Color(0xFF007AFF).withOpacity(value * 0.7),
+              shape: BoxShape.circle,
+            ),
           ),
         );
       },
@@ -369,59 +408,92 @@ class _AgentChatState extends State<AgentChat> {
 
   Widget _buildInputArea() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
+        color: const Color(0xFFF2F2F7),
+        border: Border(
+          top: BorderSide(
+            color: Colors.grey.withOpacity(0.2),
+            width: 0.5,
           ),
-        ],
+        ),
       ),
       child: Row(
         children: [
-          IconButton(
-            onPressed: _showSuggestions,
-            icon: Icon(
-              Icons.lightbulb_outline,
-              color: Colors.grey[600],
-            ),
-          ),
-          Expanded(
-            child: TextField(
-              controller: _messageController,
-              decoration: InputDecoration(
-                hintText: 'Ask me anything about your code...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Colors.grey.shade100,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
+          GestureDetector(
+            onTap: _showSuggestions,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: Colors.grey.withOpacity(0.2)),
               ),
-              maxLines: null,
-              onSubmitted: (_) => _sendMessage(),
-              textInputAction: TextInputAction.send,
+              child: Icon(
+                CupertinoIcons.lightbulb,
+                color: const Color(0xFF007AFF),
+                size: 18,
+              ),
             ),
           ),
           const SizedBox(width: 8),
-          Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              onPressed: _isLoading ? null : _sendMessage,
-              icon: Icon(
-                _isLoading ? Icons.hourglass_empty : Icons.send,
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
                 color: Colors.white,
-                size: 20,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              ),
+              child: TextField(
+                controller: _messageController,
+                decoration: InputDecoration(
+                  hintText: 'Ask me anything about your code...',
+                  hintStyle: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[500],
+                    fontWeight: FontWeight.w400,
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                ),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                ),
+                maxLines: null,
+                onSubmitted: (_) => _sendMessage(),
+                textInputAction: TextInputAction.send,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: _isLoading ? null : _sendMessage,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                gradient: _isLoading
+                    ? null
+                    : const LinearGradient(
+                        colors: [
+                          Color(0xFF007AFF),
+                          Color(0xFF5856D6),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                color: _isLoading ? Colors.grey[300] : null,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Icon(
+                _isLoading ? CupertinoIcons.hourglass : CupertinoIcons.paperplane_fill,
+                color: Colors.white,
+                size: 16,
               ),
             ),
           ),
@@ -478,23 +550,44 @@ class _SuggestionsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Suggestions'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: suggestions.map((suggestion) {
-            return ListTile(
-              title: Text(suggestion),
-              onTap: () => onSelected(suggestion),
-            );
-          }).toList(),
+    return CupertinoAlertDialog(
+      title: const Text(
+        'Suggestions',
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      content: Container(
+        constraints: const BoxConstraints(maxHeight: 300),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: suggestions.map((suggestion) {
+              return CupertinoActionSheetAction(
+                onPressed: () => onSelected(suggestion),
+                child: Text(
+                  suggestion,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
         ),
       ),
       actions: [
-        TextButton(
+        CupertinoDialogAction(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const Text(
+            'Cancel',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ),
       ],
     );

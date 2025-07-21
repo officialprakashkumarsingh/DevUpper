@@ -9,6 +9,7 @@ import '../widgets/task_card.dart';
 import '../widgets/agent_chat.dart';
 import '../screens/auth_screen.dart';
 import '../screens/repository_screen.dart';
+import 'package:flutter/cupertino.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -201,18 +202,27 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 _githubService.username ?? 'AI Development Assistant',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   color: Colors.grey[600],
+                  fontWeight: FontWeight.w400,
                 ),
               ),
             ],
           ),
           const Spacer(),
-          IconButton(
-            onPressed: _logout,
-            icon: Icon(
-              Icons.logout,
-              color: Colors.grey[600],
+          GestureDetector(
+            onTap: _logout,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                CupertinoIcons.square_arrow_right,
+                color: Colors.grey[600],
+                size: 20,
+              ),
             ),
           ),
         ],
@@ -222,39 +232,33 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildTabBar() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      padding: const EdgeInsets.all(4),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey.withOpacity(0.2)),
       ),
       child: Row(
         children: [
           Expanded(
             child: _buildTabItem(
               title: 'Repositories',
-              icon: Icons.folder_outlined,
+              icon: CupertinoIcons.folder,
               index: 0,
             ),
           ),
           Expanded(
             child: _buildTabItem(
               title: 'Tasks',
-              icon: Icons.assignment_outlined,
+              icon: CupertinoIcons.list_bullet,
               index: 1,
             ),
           ),
           Expanded(
             child: _buildTabItem(
               title: 'Agent',
-              icon: Icons.smart_toy_outlined,
+              icon: CupertinoIcons.ant_circle, // Changed agent icon
               index: 2,
             ),
           ),
@@ -277,10 +281,16 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
         decoration: BoxDecoration(
-          color: isSelected ? Theme.of(context).colorScheme.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          gradient: isSelected 
+              ? const LinearGradient(
+                  colors: [Color(0xFF007AFF), Color(0xFF5856D6)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : null,
+          borderRadius: BorderRadius.circular(7),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -295,7 +305,7 @@ class _HomeScreenState extends State<HomeScreen> {
               title,
               style: TextStyle(
                 fontSize: 13,
-                fontWeight: FontWeight.w500,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 color: isSelected ? Colors.white : Colors.grey[600],
               ),
             ),
@@ -321,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildRepositoriesTab() {
     if (_isLoading) {
       return const Center(
-        child: CircularProgressIndicator(),
+        child: CupertinoActivityIndicator(),
       );
     }
 
@@ -331,7 +341,7 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.error_outline,
+              CupertinoIcons.exclamationmark_triangle,
               size: 48,
               color: Colors.grey[400],
             ),
@@ -340,6 +350,7 @@ class _HomeScreenState extends State<HomeScreen> {
               'Error loading repositories',
               style: TextStyle(
                 fontSize: 16,
+                fontWeight: FontWeight.w600,
                 color: Colors.grey[600],
               ),
             ),
@@ -347,15 +358,24 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               _error!,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 13,
                 color: Colors.grey[500],
+                fontWeight: FontWeight.w400,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
+            CupertinoButton(
               onPressed: _loadRepositories,
-              child: const Text('Retry'),
+              color: const Color(0xFF007AFF),
+              borderRadius: BorderRadius.circular(10),
+              child: const Text(
+                'Retry',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
           ],
         ),
@@ -368,7 +388,7 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.folder_open,
+              CupertinoIcons.folder,
               size: 48,
               color: Colors.grey[400],
             ),
@@ -377,6 +397,7 @@ class _HomeScreenState extends State<HomeScreen> {
               'No repositories found',
               style: TextStyle(
                 fontSize: 16,
+                fontWeight: FontWeight.w600,
                 color: Colors.grey[600],
               ),
             ),
@@ -384,8 +405,9 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               'Create a repository on GitHub to get started',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 13,
                 color: Colors.grey[500],
+                fontWeight: FontWeight.w400,
               ),
             ),
           ],
@@ -395,24 +417,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return RefreshIndicator(
       onRefresh: _loadRepositories,
+      color: const Color(0xFF007AFF),
       child: ListView.builder(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         itemCount: _repositories.length,
         itemBuilder: (context, index) {
           final repository = _repositories[index];
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: RepositoryCard(
-              repository: repository,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => RepositoryScreen(repository: repository),
-                  ),
-                );
-              },
-            ),
+          return RepositoryCard(
+            repository: repository,
+            onTap: () {
+              Navigator.push(
+                context,
+                CupertinoPageRoute(
+                  builder: (context) => RepositoryScreen(repository: repository),
+                ),
+              );
+            },
           );
         },
       ),
@@ -426,7 +446,7 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.assignment_outlined,
+              CupertinoIcons.list_bullet,
               size: 48,
               color: Colors.grey[400],
             ),
@@ -435,6 +455,7 @@ class _HomeScreenState extends State<HomeScreen> {
               'No tasks yet',
               style: TextStyle(
                 fontSize: 16,
+                fontWeight: FontWeight.w600,
                 color: Colors.grey[600],
               ),
             ),

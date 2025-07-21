@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import '../models/agent_task.dart';
 import '../widgets/git_operations_widget.dart';
 import '../services/github_service.dart';
@@ -25,17 +26,15 @@ class TaskCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          border: Border.all(
+            color: Colors.grey.withOpacity(0.15),
+            width: 0.5,
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,13 +42,13 @@ class TaskCard extends StatelessWidget {
             _buildHeader(),
             const SizedBox(height: 8),
             _buildDescription(),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             if (task.isRunning) _buildProgress(),
-            if (task.isRunning) const SizedBox(height: 12),
+            if (task.isRunning) const SizedBox(height: 10),
             _buildFooter(),
             // Add git operations section for completed tasks
             if (task.isCompleted && repository != null && githubService != null) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               _buildGitOperationsSection(context),
             ],
           ],
@@ -62,19 +61,23 @@ class TaskCard extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 32,
-          height: 32,
+          width: 28,
+          height: 28,
           decoration: BoxDecoration(
-            color: _getStatusColor(),
+            gradient: LinearGradient(
+              colors: _getStatusGradient(),
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
             _getStatusIcon(),
             color: Colors.white,
-            size: 16,
+            size: 14,
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,19 +85,20 @@ class TaskCard extends StatelessWidget {
               Text(
                 task.title,
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 15,
                   fontWeight: FontWeight.w600,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
+              const SizedBox(height: 2),
               Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: _getTypeColor().withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       task.typeDisplayName,
@@ -105,12 +109,12 @@ class TaskCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: _getStatusColor().withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       task.statusDisplayName,
@@ -127,17 +131,19 @@ class TaskCard extends StatelessWidget {
           ),
         ),
         if (onCancel != null && task.canCancel)
-          IconButton(
-            onPressed: onCancel,
-            icon: Icon(
-              Icons.close,
-              size: 18,
-              color: Colors.grey[600],
-            ),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(
-              minWidth: 24,
-              minHeight: 24,
+          GestureDetector(
+            onTap: onCancel,
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Icon(
+                CupertinoIcons.xmark,
+                size: 14,
+                color: Colors.grey[600],
+              ),
             ),
           ),
       ],
@@ -148,9 +154,10 @@ class TaskCard extends StatelessWidget {
     return Text(
       task.description,
       style: TextStyle(
-        fontSize: 14,
+        fontSize: 13,
         color: Colors.grey[700],
         height: 1.3,
+        fontWeight: FontWeight.w400,
       ),
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
@@ -183,10 +190,14 @@ class TaskCard extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 4),
-        LinearProgressIndicator(
-          value: task.progress,
-          backgroundColor: Colors.grey.shade200,
-          valueColor: AlwaysStoppedAnimation(_getStatusColor()),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: task.progress,
+            backgroundColor: Colors.grey.withOpacity(0.2),
+            valueColor: AlwaysStoppedAnimation(_getStatusColor()),
+            minHeight: 4,
+          ),
         ),
       ],
     );
@@ -196,7 +207,7 @@ class TaskCard extends StatelessWidget {
     return Row(
       children: [
         Icon(
-          Icons.schedule,
+          CupertinoIcons.clock,
           size: 12,
           color: Colors.grey[500],
         ),
@@ -206,12 +217,13 @@ class TaskCard extends StatelessWidget {
           style: TextStyle(
             fontSize: 11,
             color: Colors.grey[500],
+            fontWeight: FontWeight.w400,
           ),
         ),
         if (task.duration != null) ...[
           const SizedBox(width: 12),
           Icon(
-            Icons.timer,
+            CupertinoIcons.timer,
             size: 12,
             color: Colors.grey[500],
           ),
@@ -221,6 +233,7 @@ class TaskCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               color: Colors.grey[500],
+              fontWeight: FontWeight.w400,
             ),
           ),
         ],
@@ -230,7 +243,7 @@ class TaskCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
               color: _getPriorityColor().withOpacity(0.1),
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
               task.priorityDisplayName,
@@ -392,15 +405,15 @@ class TaskCard extends StatelessWidget {
       case TaskStatus.pending:
         return Colors.grey.shade600;
       case TaskStatus.thinking:
-        return Colors.blue.shade600;
+        return const Color(0xFF007AFF); // iOS Blue
       case TaskStatus.planning:
-        return Colors.orange.shade600;
+        return const Color(0xFFFF9500); // iOS Orange
       case TaskStatus.executing:
-        return Colors.purple.shade600;
+        return const Color(0xFF5856D6); // iOS Purple
       case TaskStatus.completed:
-        return Colors.green.shade600;
+        return const Color(0xFF34C759); // iOS Green
       case TaskStatus.failed:
-        return Colors.red.shade600;
+        return const Color(0xFFFF3B30); // iOS Red
       case TaskStatus.cancelled:
         return Colors.grey.shade500;
     }
@@ -409,57 +422,57 @@ class TaskCard extends StatelessWidget {
   IconData _getStatusIcon() {
     switch (task.status) {
       case TaskStatus.pending:
-        return Icons.pending;
+        return CupertinoIcons.clock;
       case TaskStatus.thinking:
-        return Icons.psychology;
+        return CupertinoIcons.brain;
       case TaskStatus.planning:
-        return Icons.map;
+        return CupertinoIcons.map;
       case TaskStatus.executing:
-        return Icons.play_arrow;
+        return CupertinoIcons.play_fill;
       case TaskStatus.completed:
-        return Icons.check;
+        return CupertinoIcons.checkmark_circle_fill;
       case TaskStatus.failed:
-        return Icons.error;
+        return CupertinoIcons.exclamationmark_triangle_fill;
       case TaskStatus.cancelled:
-        return Icons.cancel;
+        return CupertinoIcons.xmark_circle_fill;
     }
   }
 
   Color _getTypeColor() {
     switch (task.type) {
       case TaskType.codeGeneration:
-        return Colors.blue.shade600;
+        return const Color(0xFF007AFF); // iOS Blue
       case TaskType.codeReview:
-        return Colors.purple.shade600;
+        return const Color(0xFF5856D6); // iOS Purple
       case TaskType.refactoring:
-        return Colors.orange.shade600;
+        return const Color(0xFFFF9500); // iOS Orange
       case TaskType.bugFix:
-        return Colors.red.shade600;
+        return const Color(0xFFFF3B30); // iOS Red
       case TaskType.testing:
-        return Colors.green.shade600;
+        return const Color(0xFF34C759); // iOS Green
       case TaskType.documentation:
-        return Colors.teal.shade600;
+        return const Color(0xFF5AC8FA); // iOS Light Blue
       case TaskType.gitOperation:
-        return Colors.grey.shade700;
+        return const Color(0xFF8E8E93); // iOS Gray
       case TaskType.fileOperation:
-        return Colors.brown.shade600;
+        return const Color(0xFFAF52DE); // iOS Purple2
       case TaskType.analysis:
-        return Colors.indigo.shade600;
+        return const Color(0xFF007AFF); // iOS Blue
       case TaskType.custom:
-        return Colors.pink.shade600;
+        return const Color(0xFFFF2D92); // iOS Pink
     }
   }
 
   Color _getPriorityColor() {
     switch (task.priority) {
       case TaskPriority.low:
-        return Colors.green.shade600;
+        return const Color(0xFF34C759); // iOS Green
       case TaskPriority.normal:
-        return Colors.blue.shade600;
+        return const Color(0xFF007AFF); // iOS Blue
       case TaskPriority.high:
-        return Colors.orange.shade600;
+        return const Color(0xFFFF9500); // iOS Orange
       case TaskPriority.critical:
-        return Colors.red.shade600;
+        return const Color(0xFFFF3B30); // iOS Red
     }
   }
 
@@ -485,6 +498,25 @@ class TaskCard extends StatelessWidget {
       return '${duration.inMinutes}m';
     } else {
       return '${duration.inSeconds}s';
+    }
+  }
+
+  List<Color> _getStatusGradient() {
+    switch (task.status) {
+      case TaskStatus.pending:
+        return [Colors.grey.shade500, Colors.grey.shade600];
+      case TaskStatus.thinking:
+        return [const Color(0xFF007AFF), const Color(0xFF5856D6)];
+      case TaskStatus.planning:
+        return [const Color(0xFFFF9500), const Color(0xFFFF6B35)];
+      case TaskStatus.executing:
+        return [const Color(0xFF5856D6), const Color(0xFFAF52DE)];
+      case TaskStatus.completed:
+        return [const Color(0xFF34C759), const Color(0xFF30D158)];
+      case TaskStatus.failed:
+        return [const Color(0xFFFF3B30), const Color(0xFFD70015)];
+      case TaskStatus.cancelled:
+        return [Colors.grey.shade400, Colors.grey.shade500];
     }
   }
 }
