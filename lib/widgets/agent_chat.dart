@@ -347,7 +347,7 @@ class _AgentChatState extends State<AgentChat> {
         borderRadius: BorderRadius.circular(14),
       ),
       child: Icon(
-        isUser ? CupertinoIcons.person_fill : CupertinoIcons.ant_circle_fill, // Changed to robot/AI icon
+        isUser ? CupertinoIcons.person_fill : CupertinoIcons.desktopcomputer, // Changed to valid computer icon for AI
         color: Colors.white,
         size: 16,
       ),

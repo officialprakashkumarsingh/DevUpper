@@ -478,7 +478,7 @@ class _GitOperationsWidgetState extends State<GitOperationsWidget> {
             Expanded(
               child: _buildActionButton(
                 'Commit',
-                Icons.commit,
+                Icons.save, // Changed to valid save icon
                 () => _performGitOperation('commit'),
                 Colors.purple,
               ),
